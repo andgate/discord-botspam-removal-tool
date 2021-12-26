@@ -1,3 +1,13 @@
+# Usage Instructions
+
+To use, you only need is the dicord token of the bot you want to purge. This can be retrieved from the [discord developer panel](https://discord.com/developers).
+
+Also, the bot role must be given the `Manage Messages` permission. This can be done from discord by right-clicking the server icon:
+```
+Server Settings -> Roles -> Edit bot role -> Permissions tab
+```
+Finally under the permissions tab, enable `Manage Messages`.
+
 # Build Instructions
 
 Requirements:
