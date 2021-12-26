@@ -115,6 +115,10 @@ class App(discord.Client):
         msg = QMessageBox(QMessageBox.Critical, self.title, "Login failed.")
         msg.exec()
 
+    def show_missing_permissions_message(self, channel):
+        msg = QMessageBox(QMessageBox.Critical, self.title, f'Missing permissions. Cannot delete messages from {channel.name}.')
+        msg.exec()
+
     def onCancelChannelSelectClicked(self):
         self.channel_dialog.close()
 
@@ -141,12 +145,17 @@ class App(discord.Client):
             loop = asyncio.get_event_loop()            
             loop.run_until_complete(self.run_channel_purge(c))
         
-        self.purge_status.setText(f'Purge complete! Deleted {self.total_purged} messages')
+        self.purge_status.setText(f'{self.total_purged} total messages purged!')
         self.pbar.setValue(n)
         self.purge_done_btn.setDisabled(False)
 
     async def run_channel_purge(self, channel):
         def is_me(m):
             return m.author == self.user
-        deleted = await channel.purge(limit=None, check=is_me)
+        deleted = []
+        try:
+            deleted = await channel.purge(limit=None, check=is_me)
+        except discord.Forbidden:
+            self.show_missing_permissions_message(channel)
+
         self.total_purged += len(deleted)
