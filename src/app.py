@@ -27,18 +27,23 @@ class App(discord.Client):
     
     async def on_ready(self):
         print(self.guilds)
-        ok1 = await self.ask_guild()
-        if not ok1:
+        ok = await self.ask_guild()
+        if not ok:
             await self.close()
             return
 
-        ok2 = await self.ask_bot_channels()
-        if not ok2:
+        ok = await self.ask_bot()
+        if not ok:
             await self.close()
             return
 
-        ok3 = await self.show_purge_dialog()
-        if not ok3:
+        ok = await self.ask_bot_channels()
+        if not ok:
+            await self.close()
+            return
+
+        ok = await self.show_purge_dialog()
+        if not ok:
             await self.close()
             return
 
@@ -56,6 +61,19 @@ class App(discord.Client):
         item, ok = QInputDialog.getItem(None, self.title, 'Select a guild to clean:', guildNames)
         if ok:
             self.guild = guilds[guildNames.index(item)]
+        return ok
+
+    async def ask_bot(self):
+        guilds = self.guilds
+        bots = []
+        for member in self.guild.members:
+            if member.bot:
+                bots.append(member)
+        
+        botNames = list(map(lambda b: b.name, bots))
+        item, ok = QInputDialog.getItem(None, self.title, 'Select bot to purge:', botNames)
+        if ok:
+            self.bot = bots[botNames.index(item)]
         return ok
 
     async def ask_bot_channels(self):
@@ -150,11 +168,11 @@ class App(discord.Client):
         self.purge_done_btn.setDisabled(False)
 
     async def run_channel_purge(self, channel):
-        def is_me(m):
-            return m.author == self.user
+        def is_bot(m):
+            return m.author.id == self.bot.id
         deleted = []
         try:
-            deleted = await channel.purge(limit=None, check=is_me)
+            deleted = await channel.purge(limit=None, check=is_bot)
         except discord.Forbidden:
             self.show_missing_permissions_message(channel)
 
